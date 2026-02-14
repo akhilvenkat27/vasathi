@@ -14,6 +14,7 @@ import RoomsList from "./pages/admin/RoomsList";
 import RoomDetail from "./pages/admin/RoomDetail";
 import ResidentDetail from "./pages/admin/ResidentDetail";
 import AllResidents from "./pages/admin/AllResidents";
+import DuesReport from "./pages/admin/DuesReport";
 import GrievancesPage from "./pages/admin/GrievancesPage";
 import SeparationRequests from "./pages/admin/SeparationRequests";
 import NotFound from "./pages/NotFound";
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/admin/:pgId/floors/:floorId/:roomId" element={<RoomDetail />} />
             <Route path="/admin/:pgId/residents" element={<AllResidents />} />
             <Route path="/admin/:pgId/residents/:residentId" element={<ResidentDetail />} />
+            <Route path="/admin/:pgId/dues" element={<DuesReport />} />
             <Route path="/admin/:pgId/grievances" element={<GrievancesPage />} />
             <Route path="/admin/:pgId/separations" element={<SeparationRequests />} />
             <Route path="*" element={<NotFound />} />

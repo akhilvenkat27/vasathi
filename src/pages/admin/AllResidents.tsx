@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Search, Filter, MoreVertical, Plus, Trash2, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Search, Filter, MoreVertical, Plus, Trash2, ChevronLeft, ChevronRight, X, ArrowRightLeft, Repeat, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,7 +19,7 @@ import { toast } from 'sonner';
 const AllResidents = () => {
   const navigate = useNavigate();
   const { pgId } = useParams<{ pgId: string }>();
-  const { getPGById, getResidentsForPG, floors, rooms, addPayment, removeResident, bulkRemoveResidents } = useApp();
+  const { getPGById, getResidentsForPG, floors, rooms, addPayment, removeResident, bulkRemoveResidents, moveResident, swapResidents, getResidentsForRoom } = useApp();
 
   const pg = getPGById(pgId || '');
   const allResidents = getResidentsForPG(pg?.id || '');
@@ -35,11 +35,18 @@ const AllResidents = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [payOpen, setPayOpen] = useState(false);
   const [payTarget, setPayTarget] = useState<string[]>([]);
+  const [moveOpen, setMoveOpen] = useState(false);
+  const [moveTarget, setMoveTarget] = useState<string | null>(null);
+  const [moveFloorId, setMoveFloorId] = useState('');
+  const [moveRoomId, setMoveRoomId] = useState('');
+  const [swapOpen, setSwapOpen] = useState(false);
+  const [swapTarget, setSwapTarget] = useState<string | null>(null);
+  const [swapWith, setSwapWith] = useState('');
   const [payForm, setPayForm] = useState({
     month: new Date().toLocaleString('default', { month: 'short' }),
     year: new Date().getFullYear().toString(),
-    type: 'rent' as any,
-    status: 'paid' as any,
+    type: 'rent' as 'rent' | 'advance' | 'deposit' | 'other',
+    status: 'paid' as 'paid' | 'partially_paid' | 'unpaid',
     amount: 0,
     date: new Date().toISOString().split('T')[0]
   });
@@ -104,7 +111,53 @@ const AllResidents = () => {
     }
   };
 
+  const handleMove = async () => {
+    if (!moveTarget || !moveRoomId || !moveFloorId) return;
+    try {
+      await moveResident(moveTarget, moveRoomId, moveFloorId);
+      setMoveOpen(false);
+      setMoveTarget(null);
+      setMoveFloorId('');
+      setMoveRoomId('');
+      toast.success('Resident moved successfully!');
+    } catch (error) {
+      toast.error('Failed to move resident.');
+    }
+  };
+
+  const moveFloorRooms = moveFloorId ? pgRooms.filter(r => r.floorId === moveFloorId) : [];
+
+  const handleSwap = async () => {
+    if (!swapTarget || !swapWith) return;
+    try {
+      await swapResidents(swapTarget, swapWith);
+      setSwapOpen(false);
+      setSwapTarget(null);
+      setSwapWith('');
+      toast.success('Residents swapped successfully!');
+    } catch (error) {
+      toast.error('Failed to swap residents.');
+    }
+  };
+
   const statusVariant = (s: string) => s === 'monthly' ? 'success' : s === 'daily' ? 'info' : 'warning';
+
+  const exportResidentsCSV = () => {
+    const headers = ['Custom ID', 'Name', 'Gender', 'Floor', 'Room', 'Status', 'Joined Date', 'Email', 'Phone'];
+    const rows = filtered.map(r => [
+      r.customId, r.name, r.gender, getFloorName(r.floorId), `Room ${getRoomName(r.roomId)}`,
+      r.status.replace('_', ' '), r.joinedDate, r.email, r.phone
+    ]);
+    const csv = [headers, ...rows].map(row => row.map(c => `"${c}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `residents_${pg?.name?.replace(/\s+/g, '_') || 'export'}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`Exported ${filtered.length} residents`);
+  };
 
   const clearFilters = () => {
     setFilterFloor('all');
@@ -179,6 +232,7 @@ const AllResidents = () => {
             </div>
           </PopoverContent>
         </Popover>
+        <Button variant="outline" onClick={exportResidentsCSV}><Download className="h-4 w-4 mr-2" /> Export CSV</Button>
       </div>
 
       {/* Table */}
@@ -221,6 +275,12 @@ const AllResidents = () => {
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => { setPayTarget([r.id]); setPayOpen(true); }}>
                             <Plus className="h-3.5 w-3.5 mr-2" /> Add Payment
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => { setMoveTarget(r.id); setMoveFloorId(''); setMoveRoomId(''); setMoveOpen(true); }}>
+                            <ArrowRightLeft className="h-3.5 w-3.5 mr-2" /> Move Room
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => { setSwapTarget(r.id); setSwapWith(''); setSwapOpen(true); }}>
+                            <Repeat className="h-3.5 w-3.5 mr-2" /> Swap With
                           </DropdownMenuItem>
                           <DropdownMenuItem className="text-destructive" onClick={() => { setDeleteTargets([r.id]); setDeleteConfirm(true); }}>
                             <Trash2 className="h-3.5 w-3.5 mr-2" /> Remove
@@ -335,6 +395,94 @@ const AllResidents = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Move Resident Dialog */}
+      <Dialog open={moveOpen} onOpenChange={(v) => { setMoveOpen(v); if (!v) { setMoveTarget(null); setMoveFloorId(''); setMoveRoomId(''); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle className="font-display">Move Resident</DialogTitle></DialogHeader>
+          {moveTarget && (() => {
+            const res = allResidents.find(r => r.id === moveTarget);
+            return res ? <p className="text-sm text-muted-foreground">Moving <strong>{res.name}</strong> ({res.customId})</p> : null;
+          })()}
+          <div className="space-y-4 mt-2">
+            <div>
+              <Label>Destination Floor</Label>
+              <Select value={moveFloorId} onValueChange={v => { setMoveFloorId(v); setMoveRoomId(''); }}>
+                <SelectTrigger><SelectValue placeholder="Select floor" /></SelectTrigger>
+                <SelectContent>
+                  {pgFloors.map(f => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            {moveFloorId && (
+              <div>
+                <Label>Destination Room</Label>
+                <Select value={moveRoomId} onValueChange={setMoveRoomId}>
+                  <SelectTrigger><SelectValue placeholder="Select room" /></SelectTrigger>
+                  <SelectContent>
+                    {moveFloorRooms.map(r => {
+                      const occupants = getResidentsForRoom(r.id).length;
+                      const isFull = occupants >= r.capacity;
+                      const isCurrent = moveTarget ? allResidents.find(res => res.id === moveTarget)?.roomId === r.id : false;
+                      return (
+                        <SelectItem key={r.id} value={r.id} disabled={isFull || isCurrent}>
+                          Room {r.name} ({occupants}/{r.capacity}) {isCurrent ? '(current)' : isFull ? '(full)' : ''}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <Button onClick={handleMove} disabled={!moveFloorId || !moveRoomId} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+              <ArrowRightLeft className="h-4 w-4 mr-2" /> Move Resident
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Swap Residents Dialog */}
+      <Dialog open={swapOpen} onOpenChange={(v) => { setSwapOpen(v); if (!v) { setSwapTarget(null); setSwapWith(''); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle className="font-display">Swap Residents</DialogTitle></DialogHeader>
+          {swapTarget && (() => {
+            const res = allResidents.find(r => r.id === swapTarget);
+            return res ? (
+              <p className="text-sm text-muted-foreground">
+                Swapping <strong>{res.name}</strong> ({getFloorName(res.floorId)} → Room {getRoomName(res.roomId)})
+              </p>
+            ) : null;
+          })()}
+          <div className="space-y-4 mt-2">
+            <div>
+              <Label>Swap With</Label>
+              <Select value={swapWith} onValueChange={setSwapWith}>
+                <SelectTrigger><SelectValue placeholder="Select a resident" /></SelectTrigger>
+                <SelectContent>
+                  {allResidents.filter(r => r.id !== swapTarget).map(r => (
+                    <SelectItem key={r.id} value={r.id}>
+                      {r.name} ({getFloorName(r.floorId)} → Room {getRoomName(r.roomId)})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {swapWith && (() => {
+              const resA = allResidents.find(r => r.id === swapTarget);
+              const resB = allResidents.find(r => r.id === swapWith);
+              return resA && resB ? (
+                <div className="p-3 rounded-lg bg-slate-50 border text-sm space-y-1">
+                  <p><strong>{resA.name}</strong> → {getFloorName(resB.floorId)}, Room {getRoomName(resB.roomId)}</p>
+                  <p><strong>{resB.name}</strong> → {getFloorName(resA.floorId)}, Room {getRoomName(resA.roomId)}</p>
+                </div>
+              ) : null;
+            })()}
+            <Button onClick={handleSwap} disabled={!swapWith} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+              <Repeat className="h-4 w-4 mr-2" /> Swap Residents
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };

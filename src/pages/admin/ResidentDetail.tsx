@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { User, Mail, Phone, Briefcase, CreditCard, Calendar, Download, Plus, AlertTriangle, ChevronLeft, ChevronRight, Filter, X } from 'lucide-react';
+import { User, Mail, Phone, Briefcase, CreditCard, Calendar, Download, Plus, AlertTriangle, ChevronLeft, ChevronRight, Filter, X, ArrowRightLeft, Repeat, Pencil, Camera, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,7 +16,7 @@ import { toast } from 'sonner';
 
 const ResidentDetail = () => {
   const { pgId, residentId } = useParams<{ pgId: string; residentId: string }>();
-  const { getPGById, getResidentById, getPaymentsForResident, getFloorById, getRoomById, addPayment, requestSeparation, separationRequests, withdrawSeparation } = useApp();
+  const { getPGById, getResidentById, getPaymentsForResident, getFloorById, getRoomById, addPayment, updateResident, requestSeparation, separationRequests, withdrawSeparation, moveResident, swapResidents, getFloorsForPG, getRoomsForFloor, getResidentsForRoom, getResidentsForPG, uploadImage } = useApp();
   const [payOpen, setPayOpen] = useState(false);
   // Pagination & Filters
   const [page, setPage] = useState(1);
@@ -42,6 +42,43 @@ const ResidentDetail = () => {
   const floor = getFloorById(resident.floorId);
   const room = getRoomById(resident.roomId);
   const existingSepReq = separationRequests.find(s => s.residentId === resident.id && s.status !== 'rejected');
+
+  // Edit resident
+  const [editOpen, setEditOpen] = useState(false);
+  const [editUploading, setEditUploading] = useState(false);
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: resident.name,
+    email: resident.email,
+    phone: resident.phone,
+    occupation: resident.occupation,
+    aadharNumber: resident.aadharNumber,
+    gender: resident.gender,
+    status: resident.status,
+    profileImage: resident.profileImage,
+  });
+
+  const handleEditImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setEditUploading(true);
+      try {
+        const url = await uploadImage(e.target.files[0]);
+        setEditForm(p => ({ ...p, profileImage: url }));
+      } catch { toast.error('Image upload failed'); }
+      finally { setEditUploading(false); }
+    }
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEditSubmitting(true);
+    try {
+      await updateResident(resident.id, editForm);
+      setEditOpen(false);
+      toast.success('Profile updated!');
+    } catch { toast.error('Failed to update profile.'); }
+    finally { setEditSubmitting(false); }
+  };
 
   const filteredPayments = payments.filter(p => {
     if (filterType !== 'all' && p.type !== filterType) return false;
@@ -101,6 +138,45 @@ const ResidentDetail = () => {
     }
   };
 
+  // Move resident
+  const [moveOpen, setMoveOpen] = useState(false);
+  const [moveFloorId, setMoveFloorId] = useState('');
+  const [moveRoomId, setMoveRoomId] = useState('');
+  const pgFloors = getFloorsForPG(pg.id);
+  const moveFloorRooms = moveFloorId ? getRoomsForFloor(moveFloorId) : [];
+
+  const handleMove = async () => {
+    if (!moveRoomId || !moveFloorId) return;
+    try {
+      await moveResident(resident.id, moveRoomId, moveFloorId);
+      setMoveOpen(false);
+      setMoveFloorId('');
+      setMoveRoomId('');
+      toast.success('Resident moved successfully!');
+    } catch (error) {
+      toast.error('Failed to move resident.');
+    }
+  };
+
+  // Swap resident
+  const [swapOpen, setSwapOpen] = useState(false);
+  const [swapWith, setSwapWith] = useState('');
+  const allPgResidents = getResidentsForPG(pg.id);
+  const getFloorName = (fId: string) => getFloorById(fId)?.name || '';
+  const getRoomName = (rId: string) => getRoomById(rId)?.name || '';
+
+  const handleSwap = async () => {
+    if (!swapWith) return;
+    try {
+      await swapResidents(resident.id, swapWith);
+      setSwapOpen(false);
+      setSwapWith('');
+      toast.success('Residents swapped successfully!');
+    } catch (error) {
+      toast.error('Failed to swap residents.');
+    }
+  };
+
   const statusVariant = (s: string) => s === 'paid' ? 'success' : s === 'partially_paid' ? 'warning' : 'destructive';
 
   return (
@@ -113,7 +189,61 @@ const ResidentDetail = () => {
         { label: resident.name },
       ]}
       actions={
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Edit Profile */}
+          <Dialog open={editOpen} onOpenChange={(v) => { setEditOpen(v); if (v) setEditForm({ name: resident.name, email: resident.email, phone: resident.phone, occupation: resident.occupation, aadharNumber: resident.aadharNumber, gender: resident.gender, status: resident.status, profileImage: resident.profileImage }); }}>
+            <DialogTrigger asChild>
+              <Button variant="outline"><Pencil className="h-4 w-4 mr-1" /> Edit Profile</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+              <DialogHeader><DialogTitle className="font-display">Edit Resident Profile</DialogTitle></DialogHeader>
+              <form onSubmit={handleEditSubmit} className="space-y-3">
+                <div className="flex flex-col items-center gap-2 pb-2">
+                  <label className="relative cursor-pointer group">
+                    <div className="w-20 h-20 rounded-full overflow-hidden bg-slate-100 border-2 border-dashed border-slate-200 flex items-center justify-center group-hover:border-accent transition-colors">
+                      {editUploading ? (
+                        <Loader2 className="h-6 w-6 text-slate-400 animate-spin" />
+                      ) : editForm.profileImage ? (
+                        <img src={editForm.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        <Camera className="h-6 w-6 text-slate-300 group-hover:text-accent transition-colors" />
+                      )}
+                    </div>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleEditImageUpload} disabled={editUploading} />
+                  </label>
+                  <span className="text-xs text-muted-foreground">{editForm.profileImage ? 'Tap to change' : 'Upload photo'}</span>
+                </div>
+                <div><Label>Full Name</Label><Input value={editForm.name} onChange={e => setEditForm(p => ({ ...p, name: e.target.value }))} required /></div>
+                <div><Label>Email</Label><Input type="email" value={editForm.email} onChange={e => setEditForm(p => ({ ...p, email: e.target.value }))} required /></div>
+                <div><Label>Phone</Label><Input value={editForm.phone} onChange={e => setEditForm(p => ({ ...p, phone: e.target.value }))} required /></div>
+                <div><Label>Occupation</Label><Input value={editForm.occupation} onChange={e => setEditForm(p => ({ ...p, occupation: e.target.value }))} /></div>
+                <div><Label>Aadhar Number</Label><Input value={editForm.aadharNumber} onChange={e => setEditForm(p => ({ ...p, aadharNumber: e.target.value }))} required /></div>
+                <div><Label>Gender</Label>
+                  <Select value={editForm.gender} onValueChange={v => setEditForm(p => ({ ...p, gender: v as any }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div><Label>Status</Label>
+                  <Select value={editForm.status} onValueChange={v => setEditForm(p => ({ ...p, status: v as any }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="daily">Daily</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="notice_period">Notice Period</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={editSubmitting || editUploading}>
+                  {editSubmitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</> : 'Save Changes'}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
           <Dialog open={payOpen} onOpenChange={setPayOpen}>
             <DialogTrigger asChild>
               <Button className="bg-accent text-accent-foreground hover:bg-accent/90"><Plus className="h-4 w-4 mr-2" /> Add Payment</Button>
@@ -194,6 +324,91 @@ const ResidentDetail = () => {
               </AlertDialogContent>
             </AlertDialog>
           )}
+          <Dialog open={moveOpen} onOpenChange={(v) => { setMoveOpen(v); if (!v) { setMoveFloorId(''); setMoveRoomId(''); } }}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <ArrowRightLeft className="h-4 w-4 mr-1" /> Move Room
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader><DialogTitle className="font-display">Move Resident</DialogTitle></DialogHeader>
+              <p className="text-sm text-muted-foreground">Current: <strong>{floor?.name} → Room {room?.name}</strong></p>
+              <div className="space-y-4 mt-2">
+                <div>
+                  <Label>Destination Floor</Label>
+                  <Select value={moveFloorId} onValueChange={v => { setMoveFloorId(v); setMoveRoomId(''); }}>
+                    <SelectTrigger><SelectValue placeholder="Select floor" /></SelectTrigger>
+                    <SelectContent>
+                      {pgFloors.map(f => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {moveFloorId && (
+                  <div>
+                    <Label>Destination Room</Label>
+                    <Select value={moveRoomId} onValueChange={setMoveRoomId}>
+                      <SelectTrigger><SelectValue placeholder="Select room" /></SelectTrigger>
+                      <SelectContent>
+                        {moveFloorRooms.map(r => {
+                          const occupants = getResidentsForRoom(r.id).length;
+                          const isFull = occupants >= r.capacity;
+                          const isCurrent = r.id === resident.roomId;
+                          return (
+                            <SelectItem key={r.id} value={r.id} disabled={isFull || isCurrent}>
+                              Room {r.name} ({occupants}/{r.capacity}) {isCurrent ? '(current)' : isFull ? '(full)' : ''}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                <Button onClick={handleMove} disabled={!moveFloorId || !moveRoomId} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+                  <ArrowRightLeft className="h-4 w-4 mr-2" /> Move Resident
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+          <Dialog open={swapOpen} onOpenChange={(v) => { setSwapOpen(v); if (!v) { setSwapWith(''); } }}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Repeat className="h-4 w-4 mr-1" /> Swap
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader><DialogTitle className="font-display">Swap Residents</DialogTitle></DialogHeader>
+              <p className="text-sm text-muted-foreground">
+                Swapping <strong>{resident.name}</strong> ({floor?.name} → Room {room?.name})
+              </p>
+              <div className="space-y-4 mt-2">
+                <div>
+                  <Label>Swap With</Label>
+                  <Select value={swapWith} onValueChange={setSwapWith}>
+                    <SelectTrigger><SelectValue placeholder="Select a resident" /></SelectTrigger>
+                    <SelectContent>
+                      {allPgResidents.filter(r => r.id !== resident.id).map(r => (
+                        <SelectItem key={r.id} value={r.id}>
+                          {r.name} ({getFloorName(r.floorId)} → Room {getRoomName(r.roomId)})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {swapWith && (() => {
+                  const resB = allPgResidents.find(r => r.id === swapWith);
+                  return resB ? (
+                    <div className="p-3 rounded-lg bg-slate-50 border text-sm space-y-1">
+                      <p><strong>{resident.name}</strong> → {getFloorName(resB.floorId)}, Room {getRoomName(resB.roomId)}</p>
+                      <p><strong>{resB.name}</strong> → {floor?.name}, Room {room?.name}</p>
+                    </div>
+                  ) : null;
+                })()}
+                <Button onClick={handleSwap} disabled={!swapWith} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+                  <Repeat className="h-4 w-4 mr-2" /> Swap Residents
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       }
     >

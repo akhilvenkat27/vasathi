@@ -31,8 +31,11 @@ interface AppContextType {
   updateRoom: (id: string, room: Partial<Room>) => Promise<void>;
   deleteRoom: (id: string) => Promise<void>;
   addResident: (resident: Omit<Resident, 'id' | 'customId'>) => Promise<void>;
+  updateResident: (id: string, data: Partial<Resident>) => Promise<void>;
   removeResident: (id: string) => Promise<void>;
   bulkRemoveResidents: (ids: string[]) => Promise<void>;
+  moveResident: (id: string, newRoomId: string, newFloorId: string) => Promise<void>;
+  swapResidents: (residentAId: string, residentBId: string) => Promise<void>;
   addPayment: (payment: Omit<Payment, 'id'>) => Promise<void>;
   bulkAddPayment: (residentIds: string[], payment: Omit<Payment, 'id' | 'residentId'>) => Promise<void>;
   reportGrievance: (grievance: Omit<Grievance, 'id' | 'reportedAt' | 'status'>) => Promise<void>;
@@ -209,6 +212,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const newDoc = await apiRequest('residents', 'POST', { ...resident, customId });
     setResidents(prev => [...prev, mapDoc(newDoc)]);
   };
+  const updateResident = async (id: string, data: Partial<Resident>) => {
+    const updated = await apiRequest(`residents/${id}`, 'PUT', data);
+    setResidents(prev => prev.map(r => r.id === id ? { ...r, ...data } : r));
+  };
   const removeResident = async (id: string) => {
     await apiRequest(`residents/${id}`, 'DELETE');
     setResidents(prev => prev.filter(r => r.id !== id));
@@ -216,6 +223,24 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const bulkRemoveResidents = async (ids: string[]) => {
     await Promise.all(ids.map(id => apiRequest(`residents/${id}`, 'DELETE')));
     setResidents(prev => prev.filter(r => !ids.includes(r.id)));
+  };
+  const moveResident = async (id: string, newRoomId: string, newFloorId: string) => {
+    const updated = await apiRequest(`residents/${id}`, 'PUT', { roomId: newRoomId, floorId: newFloorId });
+    setResidents(prev => prev.map(r => r.id === id ? { ...r, roomId: newRoomId, floorId: newFloorId } : r));
+  };
+  const swapResidents = async (residentAId: string, residentBId: string) => {
+    const resA = residents.find(r => r.id === residentAId);
+    const resB = residents.find(r => r.id === residentBId);
+    if (!resA || !resB) throw new Error('Residents not found');
+    await Promise.all([
+      apiRequest(`residents/${residentAId}`, 'PUT', { roomId: resB.roomId, floorId: resB.floorId }),
+      apiRequest(`residents/${residentBId}`, 'PUT', { roomId: resA.roomId, floorId: resA.floorId }),
+    ]);
+    setResidents(prev => prev.map(r => {
+      if (r.id === residentAId) return { ...r, roomId: resB.roomId, floorId: resB.floorId };
+      if (r.id === residentBId) return { ...r, roomId: resA.roomId, floorId: resA.floorId };
+      return r;
+    }));
   };
 
   const addPayment = async (payment: Omit<Payment, 'id'>) => {
@@ -299,7 +324,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       pgs, floors, rooms, residents, payments, grievances, separationRequests, currentUser, isLoading,
       loginAsAdmin, loginAsResident, logout,
       addPG, updatePG, deletePG, addFloor, updateFloor, deleteFloor, addRoom, updateRoom, deleteRoom,
-      addResident, removeResident, bulkRemoveResidents,
+      addResident, updateResident, removeResident, bulkRemoveResidents, moveResident, swapResidents,
       addPayment, bulkAddPayment,
       reportGrievance, updateGrievanceStatus, bulkUpdateGrievanceStatus,
       requestSeparation, approveSeparation, rejectSeparation, withdrawSeparation,

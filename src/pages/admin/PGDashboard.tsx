@@ -66,6 +66,7 @@ const PGDashboard = () => {
                 <Plus className="h-4 w-4 mr-2" /> Add Tenant
               </DropdownMenuItem>
               <DropdownMenuItem className="rounded-xl h-10 font-bold" onClick={() => navigate(`/admin/${pg.id}/residents`)}>All Residents</DropdownMenuItem>
+              <DropdownMenuItem className="rounded-xl h-10 font-bold" onClick={() => navigate(`/admin/${pg.id}/dues`)}>Dues Report</DropdownMenuItem>
               <DropdownMenuItem className="rounded-xl h-10 font-bold" onClick={() => navigate(`/admin/${pg.id}/grievances`)}>Grievances</DropdownMenuItem>
               <DropdownMenuItem className="rounded-xl h-10 font-bold" onClick={() => navigate(`/admin/${pg.id}/separations`)}>Separation Requests</DropdownMenuItem>
             </DropdownMenuContent>
