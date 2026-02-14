@@ -35,7 +35,14 @@ const AllResidents = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [payOpen, setPayOpen] = useState(false);
   const [payTarget, setPayTarget] = useState<string[]>([]);
-  const [payForm, setPayForm] = useState({ period: '', type: 'rent' as any, status: 'paid' as any, amount: 0, date: new Date().toISOString().split('T')[0] });
+  const [payForm, setPayForm] = useState({
+    month: new Date().toLocaleString('default', { month: 'short' }),
+    year: new Date().getFullYear().toString(),
+    type: 'rent' as any,
+    status: 'paid' as any,
+    amount: 0,
+    date: new Date().toISOString().split('T')[0]
+  });
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleteTargets, setDeleteTargets] = useState<string[]>([]);
 
@@ -67,7 +74,14 @@ const AllResidents = () => {
 
   const handleAddPayment = (e: React.FormEvent) => {
     e.preventDefault();
-    payTarget.forEach(rid => addPayment({ ...payForm, residentId: rid }));
+    payTarget.forEach(rid => addPayment({
+      period: `${payForm.month} ${payForm.year}`,
+      type: payForm.type,
+      status: payForm.status,
+      amount: payForm.amount,
+      date: payForm.date,
+      residentId: rid
+    }));
     setPayOpen(false);
     setPayTarget([]);
     setSelected([]);
@@ -249,7 +263,30 @@ const AllResidents = () => {
         <DialogContent>
           <DialogHeader><DialogTitle className="font-display">Add Payment</DialogTitle></DialogHeader>
           <form onSubmit={handleAddPayment} className="space-y-4">
-            <div><Label>Period</Label><Input placeholder="e.g. Mar 2025" value={payForm.period} onChange={e => setPayForm(p => ({ ...p, period: e.target.value }))} required /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Month</Label>
+                <Select value={payForm.month} onValueChange={v => setPayForm(p => ({ ...p, month: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map(m => (
+                      <SelectItem key={m} value={m}>{m}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Year</Label>
+                <Select value={payForm.year} onValueChange={v => setPayForm(p => ({ ...p, year: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 2 + i).map(y => (
+                      <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
             <div><Label>Type</Label>
               <Select value={payForm.type} onValueChange={v => setPayForm(p => ({ ...p, type: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>

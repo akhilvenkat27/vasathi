@@ -8,20 +8,21 @@ export const mockPGs: PG[] = [
     description: 'Premium co-living space in the heart of the city with modern amenities, 24/7 security, and a vibrant community.',
     address: '123 MG Road, Bangalore, Karnataka 560001',
     contact: '+91 9876543210',
-    image: '',
+    image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=80',
+    photos: ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80', 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=800&q=80'],
   },
 ];
 
 export const mockFloors: Floor[] = [
-  { id: 'f1', pgId: 'pg1', name: 'First Floor', slug: 'first-floor' },
-  { id: 'f2', pgId: 'pg1', name: 'Second Floor', slug: 'second-floor' },
+  { id: 'f1', pgId: 'pg1', name: 'First Floor', slug: 'first-floor', photos: ['https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=800&q=80'] },
+  { id: 'f2', pgId: 'pg1', name: 'Second Floor', slug: 'second-floor', photos: ['https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?auto=format&fit=crop&w=800&q=80'] },
 ];
 
 export const mockRooms: Room[] = [
-  { id: 'r1', floorId: 'f1', pgId: 'pg1', name: '101', sharingType: 'Double', acType: 'ac', capacity: 2, rent: 8000 },
-  { id: 'r2', floorId: 'f1', pgId: 'pg1', name: '102', sharingType: 'Single', acType: 'non_ac', capacity: 1, rent: 12000 },
-  { id: 'r3', floorId: 'f2', pgId: 'pg1', name: '201', sharingType: 'Triple', acType: 'ac', capacity: 3, rent: 6000 },
-  { id: 'r4', floorId: 'f2', pgId: 'pg1', name: '202', sharingType: 'Double', acType: 'ac', capacity: 2, rent: 9000 },
+  { id: 'r1', floorId: 'f1', pgId: 'pg1', name: '101', sharingType: 'Double', acType: 'ac', capacity: 2, rent: 8000, photos: ['https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=800&q=80'] },
+  { id: 'r2', floorId: 'f1', pgId: 'pg1', name: '102', sharingType: 'Single', acType: 'non_ac', capacity: 1, rent: 12000, photos: ['https://images.unsplash.com/photo-1505691938895-1758d7eaa511?auto=format&fit=crop&w=800&q=80'] },
+  { id: 'r3', floorId: 'f2', pgId: 'pg1', name: '201', sharingType: 'Triple', acType: 'ac', capacity: 3, rent: 6000, photos: ['https://images.unsplash.com/photo-1540518614846-7eded433c457?auto=format&fit=crop&w=800&q=80'] },
+  { id: 'r4', floorId: 'f2', pgId: 'pg1', name: '202', sharingType: 'Double', acType: 'ac', capacity: 2, rent: 9000, photos: ['https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80'] },
 ];
 
 export const mockResidents: Resident[] = [
@@ -29,7 +30,7 @@ export const mockResidents: Resident[] = [
     id: 'res1', customId: 'HEL001', name: 'Rahul Sharma', email: 'rahul@example.com',
     phone: '+91 9876543201', occupation: 'Software Engineer', aadharNumber: '1234-5678-9012',
     gender: 'male', joinedDate: '2024-06-15', status: 'monthly',
-    roomId: 'r1', floorId: 'f1', pgId: 'pg1', profileImage: '',
+    roomId: 'r1', floorId: 'f1', pgId: 'pg1', profileImage: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&w=800&q=80',
   },
   {
     id: 'res2', customId: 'HEL002', name: 'Priya Patel', email: 'priya@example.com',

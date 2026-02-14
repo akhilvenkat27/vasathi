@@ -30,6 +30,7 @@ const GrievancesPage = () => {
   const [statusModal, setStatusModal] = useState<string | null>(null);
   const [newStatus, setNewStatus] = useState<string>('pending');
   const [bulkStatusModal, setBulkStatusModal] = useState(false);
+  const [fullImage, setFullImage] = useState<string | null>(null);
 
   const pgGrievances = grievances.filter(g => g.pgId === pg?.id);
 
@@ -179,6 +180,21 @@ const GrievancesPage = () => {
                 <p className="text-sm text-muted-foreground mb-1">Description</p>
                 <p>{viewing.description}</p>
               </div>
+              {viewing.photos && viewing.photos.length > 0 && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">Attached Photos</p>
+                  <div className="flex flex-wrap gap-2">
+                    {viewing.photos.map((p, i) => (
+                      <div key={i} className="relative w-24 h-24 rounded-md overflow-hidden border border-border cursor-pointer group hover:border-accent transition-all" onClick={() => setFullImage(p)}>
+                        <img src={p} alt={`Evidence ${i + 1}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Eye className="h-5 w-5 text-white" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Status</p>
                 <Badge variant={statusVariant(viewing.status)}>{viewing.status.replace('_', ' ')}</Badge>
@@ -224,6 +240,23 @@ const GrievancesPage = () => {
             </Select>
             <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleBulkStatus}>Update All</Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Full Image Viewer */}
+      <Dialog open={!!fullImage} onOpenChange={() => setFullImage(null)}>
+        <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 overflow-hidden bg-transparent border-0 shadow-none">
+          {fullImage && (
+            <div className="relative w-full h-full flex items-center justify-center">
+              <img src={fullImage} alt="Full view" className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl" />
+              <button
+                onClick={() => setFullImage(null)}
+                className="absolute top-4 right-4 h-10 w-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-all border border-white/20"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </AdminLayout>

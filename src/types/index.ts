@@ -5,7 +5,8 @@ export interface PG {
   description: string;
   address: string;
   contact: string;
-  image: string;
+  image?: string;
+  photos: string[];
 }
 
 export interface Floor {
@@ -13,6 +14,7 @@ export interface Floor {
   pgId: string;
   name: string;
   slug: string;
+  photos?: string[];
 }
 
 export interface Room {
@@ -24,6 +26,7 @@ export interface Room {
   acType: 'ac' | 'non_ac';
   capacity: number;
   rent: number;
+  photos?: string[];
 }
 
 export interface Resident {
@@ -78,4 +81,9 @@ export interface SeparationRequest {
   floorName: string;
   pgId: string;
   initiatedBy: 'resident' | 'admin';
+}
+
+export interface User {
+  type: 'admin' | 'resident';
+  residentId?: string;
 }
