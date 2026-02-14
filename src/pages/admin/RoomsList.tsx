@@ -152,7 +152,7 @@ const RoomsList = () => {
             const occupants = getResidentsForRoom(room.id).length;
             return (
               <div key={room.id} className="glass-card rounded-xl overflow-hidden hover-lift p-0 border-0 shadow-lg shadow-slate-200/50">
-                <ImageSlideshow images={room.photos?.length ? room.photos : []} className="h-40" />
+                <ImageSlideshow images={room.photos?.length ? room.photos : []} className="h-56" />
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-lg font-display font-bold text-foreground">Room {room.name}</h3>

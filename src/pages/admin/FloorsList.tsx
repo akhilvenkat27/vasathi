@@ -128,7 +128,7 @@ const FloorsList = () => {
             const roomCount = getRoomsForFloor(floor.id).length;
             return (
               <div key={floor.id} className="glass-card rounded-xl overflow-hidden hover-lift p-0 border-0 shadow-lg shadow-slate-200/50">
-                <ImageSlideshow images={floor.photos?.length ? floor.photos : []} className="h-40" />
+                <ImageSlideshow images={floor.photos?.length ? floor.photos : []} className="h-56" />
                 <div className="p-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="p-2.5 rounded-lg bg-accent/10"><Layers className="h-6 w-6 text-accent" /></div>

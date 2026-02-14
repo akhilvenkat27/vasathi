@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Plus, User, Trash2, Eye, Users } from 'lucide-react';
+import { Plus, User, Trash2, Eye, Users, Camera, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,8 +15,11 @@ import { toast } from 'sonner';
 const RoomDetail = () => {
   const navigate = useNavigate();
   const { pgId, floorId, roomId } = useParams<{ pgId: string; floorId: string; roomId: string }>();
-  const { getPGById, getFloorById, getRoomById, getResidentsForRoom, addResident, removeResident } = useApp();
+  const { getPGById, getFloorById, getRoomById, getResidentsForRoom, addResident, removeResident, uploadImage } = useApp();
   const [open, setOpen] = useState(false);
+  const [profileImage, setProfileImage] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState({
     name: '', email: '', phone: '', occupation: '', aadharNumber: '',
     gender: 'male' as 'male' | 'female' | 'other',
@@ -31,17 +34,35 @@ const RoomDetail = () => {
 
   if (!pg || !floor || !room) return <div className="p-8 text-center">Not found</div>;
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setIsUploading(true);
+      try {
+        const url = await uploadImage(e.target.files[0]);
+        setProfileImage(url);
+      } catch (error) {
+        toast.error('Image upload failed');
+      } finally {
+        setIsUploading(false);
+      }
+    }
+  };
+
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     try {
       await addResident({
-        ...form, roomId: room.id, floorId: floor.id, pgId: pg.id, profileImage: '',
+        ...form, roomId: room.id, floorId: floor.id, pgId: pg.id, profileImage,
       });
       setForm({ name: '', email: '', phone: '', occupation: '', aadharNumber: '', gender: 'male', status: 'monthly', joinedDate: new Date().toISOString().split('T')[0] });
+      setProfileImage('');
       setOpen(false);
       toast.success('Resident added!');
     } catch (error) {
       toast.error('Failed to add resident. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -58,7 +79,7 @@ const RoomDetail = () => {
         { label: `Room ${room.name}` },
       ]}
       actions={
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setProfileImage(''); } }}>
           <DialogTrigger asChild>
             <Button className="bg-accent text-accent-foreground hover:bg-accent/90" disabled={residents.length >= room.capacity}>
               <Plus className="h-4 w-4 mr-2" /> Add Resident
@@ -67,6 +88,22 @@ const RoomDetail = () => {
           <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle className="font-display">Add New Resident</DialogTitle></DialogHeader>
             <form onSubmit={handleAdd} className="space-y-3">
+              {/* Profile Image Upload */}
+              <div className="flex flex-col items-center gap-2 pb-2">
+                <label className="relative cursor-pointer group">
+                  <div className="w-20 h-20 rounded-full overflow-hidden bg-slate-100 border-2 border-dashed border-slate-200 flex items-center justify-center group-hover:border-accent transition-colors">
+                    {isUploading ? (
+                      <Loader2 className="h-6 w-6 text-slate-400 animate-spin" />
+                    ) : profileImage ? (
+                      <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <Camera className="h-6 w-6 text-slate-300 group-hover:text-accent transition-colors" />
+                    )}
+                  </div>
+                  <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
+                </label>
+                <span className="text-xs text-muted-foreground">{profileImage ? 'Tap to change' : 'Upload photo'}</span>
+              </div>
               <div><Label>Full Name</Label><Input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required /></div>
               <div><Label>Email</Label><Input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} required /></div>
               <div><Label>Phone</Label><Input value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} required /></div>
@@ -93,7 +130,9 @@ const RoomDetail = () => {
                 </Select>
               </div>
               <div><Label>Joined Date</Label><Input type="date" value={form.joinedDate} onChange={e => setForm(p => ({ ...p, joinedDate: e.target.value }))} required /></div>
-              <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">Add Resident</Button>
+              <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={isSubmitting || isUploading}>
+                {isSubmitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Adding...</> : 'Add Resident'}
+              </Button>
             </form>
           </DialogContent>
         </Dialog>
@@ -116,8 +155,12 @@ const RoomDetail = () => {
           {residents.map(r => (
             <div key={r.id} className="glass-card rounded-xl p-6 hover-lift">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
-                  <User className="h-6 w-6 text-accent" />
+                <div className="w-12 h-12 rounded-full overflow-hidden bg-accent/10 flex items-center justify-center flex-shrink-0">
+                  {r.profileImage ? (
+                    <img src={r.profileImage} alt={r.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${r.name}`} alt={r.name} className="w-full h-full object-cover" />
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-display font-bold text-foreground">{r.name}</h3>
