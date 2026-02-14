@@ -31,14 +31,18 @@ const RoomDetail = () => {
 
   if (!pg || !floor || !room) return <div className="p-8 text-center">Not found</div>;
 
-  const handleAdd = (e: React.FormEvent) => {
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    addResident({
-      ...form, roomId: room.id, floorId: floor.id, pgId: pg.id, profileImage: '',
-    });
-    setForm({ name: '', email: '', phone: '', occupation: '', aadharNumber: '', gender: 'male', status: 'monthly', joinedDate: new Date().toISOString().split('T')[0] });
-    setOpen(false);
-    toast.success('Resident added!');
+    try {
+      await addResident({
+        ...form, roomId: room.id, floorId: floor.id, pgId: pg.id, profileImage: '',
+      });
+      setForm({ name: '', email: '', phone: '', occupation: '', aadharNumber: '', gender: 'male', status: 'monthly', joinedDate: new Date().toISOString().split('T')[0] });
+      setOpen(false);
+      toast.success('Resident added!');
+    } catch (error) {
+      toast.error('Failed to add resident. Please try again.');
+    }
   };
 
   const statusVariant = (s: string) => s === 'monthly' ? 'success' : s === 'daily' ? 'info' : 'warning';
@@ -139,7 +143,7 @@ const RoomDetail = () => {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => { removeResident(r.id); toast.success('Resident removed'); }}>Remove</AlertDialogAction>
+                      <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={async () => { try { await removeResident(r.id); toast.success('Resident removed'); } catch { toast.error('Failed to remove resident'); } }}>Remove</AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>

@@ -54,19 +54,27 @@ const GrievancesPage = () => {
 
   const viewing = grievances.find(g => g.id === viewGrievance);
 
-  const handleStatusChange = () => {
+  const handleStatusChange = async () => {
     if (statusModal) {
-      updateGrievanceStatus(statusModal, newStatus as any);
-      setStatusModal(null);
-      toast.success('Status updated');
+      try {
+        await updateGrievanceStatus(statusModal, newStatus as any);
+        setStatusModal(null);
+        toast.success('Status updated');
+      } catch (error) {
+        toast.error('Failed to update status.');
+      }
     }
   };
 
-  const handleBulkStatus = () => {
-    bulkUpdateGrievanceStatus(selected, newStatus as any);
-    setBulkStatusModal(false);
-    setSelected([]);
-    toast.success(`${selected.length} grievance(s) updated`);
+  const handleBulkStatus = async () => {
+    try {
+      await bulkUpdateGrievanceStatus(selected, newStatus as any);
+      setBulkStatusModal(false);
+      setSelected([]);
+      toast.success(`${selected.length} grievance(s) updated`);
+    } catch (error) {
+      toast.error('Failed to update grievances.');
+    }
   };
 
   return (

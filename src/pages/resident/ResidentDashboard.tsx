@@ -57,32 +57,44 @@ const ResidentDashboard = () => {
     setIssuePhotos(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleReportIssue = (e: React.FormEvent) => {
+  const handleReportIssue = async (e: React.FormEvent) => {
     e.preventDefault();
-    reportGrievance({
-      residentId: resident.id,
-      residentName: resident.name,
-      description: issueDesc,
-      photos: issuePhotos,
-      roomName: room?.name || '',
-      floorName: floor?.name || '',
-      pgId: resident.pgId,
-    });
-    setIssueDesc('');
-    setIssuePhotos([]);
-    setIssueOpen(false);
-    toast.success('Our team has been notified. We will resolve this soon.');
+    try {
+      await reportGrievance({
+        residentId: resident.id,
+        residentName: resident.name,
+        description: issueDesc,
+        photos: issuePhotos,
+        roomName: room?.name || '',
+        floorName: floor?.name || '',
+        pgId: resident.pgId,
+      });
+      setIssueDesc('');
+      setIssuePhotos([]);
+      setIssueOpen(false);
+      toast.success('Our team has been notified. We will resolve this soon.');
+    } catch (error) {
+      toast.error('Failed to submit issue. Please try again.');
+    }
   };
 
-  const handleSeparation = () => {
-    requestSeparation(resident.id, resident.pgId, 'resident');
-    toast.success('Separation request submitted. Awaiting admin approval.');
+  const handleSeparation = async () => {
+    try {
+      await requestSeparation(resident.id, resident.pgId, 'resident');
+      toast.success('Separation request submitted. Awaiting admin approval.');
+    } catch (error) {
+      toast.error('Failed to submit separation request.');
+    }
   };
 
-  const handleWithdraw = () => {
+  const handleWithdraw = async () => {
     if (existingSepReq) {
-      withdrawSeparation(existingSepReq.id);
-      toast.success('Separation request withdrawn');
+      try {
+        await withdrawSeparation(existingSepReq.id);
+        toast.success('Separation request withdrawn');
+      } catch (error) {
+        toast.error('Failed to withdraw separation request.');
+      }
     }
   };
 

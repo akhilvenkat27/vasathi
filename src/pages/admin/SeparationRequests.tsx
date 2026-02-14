@@ -41,19 +41,27 @@ const SeparationRequests = () => {
 
   const acting = separationRequests.find(s => s.id === actModal);
 
-  const handleApprove = () => {
+  const handleApprove = async () => {
     if (actModal && exitDate) {
-      approveSeparation(actModal, exitDate);
-      setActModal(null);
-      toast.success('Separation approved');
+      try {
+        await approveSeparation(actModal, exitDate);
+        setActModal(null);
+        toast.success('Separation approved');
+      } catch (error) {
+        toast.error('Failed to approve separation.');
+      }
     }
   };
 
-  const handleReject = () => {
+  const handleReject = async () => {
     if (actModal) {
-      rejectSeparation(actModal);
-      setActModal(null);
-      toast.success('Separation rejected');
+      try {
+        await rejectSeparation(actModal);
+        setActModal(null);
+        toast.success('Separation rejected');
+      } catch (error) {
+        toast.error('Failed to reject separation.');
+      }
     }
   };
 

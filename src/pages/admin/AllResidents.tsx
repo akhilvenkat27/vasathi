@@ -72,28 +72,36 @@ const AllResidents = () => {
   const getFloorName = (id: string) => floors.find(f => f.id === id)?.name || '';
   const getRoomName = (id: string) => rooms.find(r => r.id === id)?.name || '';
 
-  const handleAddPayment = (e: React.FormEvent) => {
+  const handleAddPayment = async (e: React.FormEvent) => {
     e.preventDefault();
-    payTarget.forEach(rid => addPayment({
-      period: `${payForm.month} ${payForm.year}`,
-      type: payForm.type,
-      status: payForm.status,
-      amount: payForm.amount,
-      date: payForm.date,
-      residentId: rid
-    }));
-    setPayOpen(false);
-    setPayTarget([]);
-    setSelected([]);
-    toast.success(`Payment added for ${payTarget.length} resident(s)`);
+    try {
+      await Promise.all(payTarget.map(rid => addPayment({
+        period: `${payForm.month} ${payForm.year}`,
+        type: payForm.type,
+        status: payForm.status,
+        amount: payForm.amount,
+        date: payForm.date,
+        residentId: rid
+      })));
+      setPayOpen(false);
+      setPayTarget([]);
+      setSelected([]);
+      toast.success(`Payment added for ${payTarget.length} resident(s)`);
+    } catch (error) {
+      toast.error('Failed to add payment. Please try again.');
+    }
   };
 
-  const handleDelete = () => {
-    bulkRemoveResidents(deleteTargets);
-    setDeleteConfirm(false);
-    setDeleteTargets([]);
-    setSelected([]);
-    toast.success('Resident(s) removed');
+  const handleDelete = async () => {
+    try {
+      await bulkRemoveResidents(deleteTargets);
+      setDeleteConfirm(false);
+      setDeleteTargets([]);
+      setSelected([]);
+      toast.success('Resident(s) removed');
+    } catch (error) {
+      toast.error('Failed to remove resident(s). Please try again.');
+    }
   };
 
   const statusVariant = (s: string) => s === 'monthly' ? 'success' : s === 'daily' ? 'info' : 'warning';
