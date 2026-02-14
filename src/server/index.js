@@ -219,7 +219,7 @@ app.post('/api/upload-multiple', upload.array('images', 10), (req, res) => {
 if (fs.existsSync(DIST_DIR)) {
     app.use(express.static(DIST_DIR));
     // SPA Fallback: Any request not handled by API or Static files returns index.html
-    app.get('*', (req, res) => {
+    app.get('/{*splat}', (req, res) => {
         if (!req.path.startsWith('/api')) {
             res.sendFile(path.join(DIST_DIR, 'index.html'));
         }
