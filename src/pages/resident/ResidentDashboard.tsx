@@ -126,10 +126,10 @@ const ResidentDashboard = () => {
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
-              <Building2 className="h-5 w-5 text-accent-foreground" />
-            </div>
-            <span className="text-xl font-black font-display tracking-tight text-foreground">Vasathi</span>
+            <span className="text-2xl font-black tracking-tight" style={{ fontFamily: '"Playfair Display", serif' }}>
+              <span className="text-accent">Vasa</span>
+              <span style={{ color: '#7d9fad' }}>thi.</span>
+            </span>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-xs font-bold text-slate-400 hidden sm:block uppercase tracking-widest">Resident Portal</span>
