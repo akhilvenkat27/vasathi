@@ -109,6 +109,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  // Auto-refresh every 30s so admin sees new grievances/separations from resident sessions
+  useEffect(() => {
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
   useEffect(() => {
     if (currentUser) {
       localStorage.setItem('vasathi_currentUser', JSON.stringify(currentUser));

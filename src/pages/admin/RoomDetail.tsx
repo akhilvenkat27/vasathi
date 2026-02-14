@@ -155,9 +155,9 @@ const RoomDetail = () => {
           <p className="text-muted-foreground">Add the first resident to this room.</p>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {residents.map(r => (
-            <div key={r.id} className="glass-card rounded-xl p-6 hover-lift">
+            <div key={r.id} className="glass-card rounded-xl p-4 hover-lift max-w-sm">
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 rounded-full overflow-hidden bg-accent/10 flex items-center justify-center flex-shrink-0">
                   {r.profileImage ? (

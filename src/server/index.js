@@ -134,8 +134,8 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 
 app.get('/api/db', async (req, res) => {
     try {
         const [pgs, floors, rooms, residents, payments, grievances, separationRequests] = await Promise.all([
-            PG.find(), Floor.find(), Room.find(), Resident.find(),
-            Payment.find(), Grievance.find(), SeparationRequest.find()
+            PG.find().lean(), Floor.find().lean(), Room.find().lean(), Resident.find().lean(),
+            Payment.find().lean(), Grievance.find().lean(), SeparationRequest.find().lean()
         ]);
         res.json({ pgs, floors, rooms, residents, payments, grievances, separationRequests });
     } catch (error) {
@@ -176,13 +176,13 @@ const registerCRUDRoutes = (model, baseRoute) => {
         try {
             const doc = new model(req.body);
             await doc.save();
-            res.json(doc);
+            res.json(doc.toObject());
         } catch (e) { res.status(500).json({ error: e.message }); }
     });
 
     app.put(`/api/${baseRoute}/:id`, async (req, res) => {
         try {
-            const doc = await model.findByIdAndUpdate(req.params.id, req.body, { new: true });
+            const doc = await model.findByIdAndUpdate(req.params.id, req.body, { new: true, lean: true });
             res.json(doc);
         } catch (e) { res.status(500).json({ error: e.message }); }
     });
