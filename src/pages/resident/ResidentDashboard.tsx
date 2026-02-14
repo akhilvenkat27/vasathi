@@ -127,8 +127,7 @@ const ResidentDashboard = () => {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
           <div className="flex items-center gap-2.5">
             <span className="text-2xl font-black tracking-tight" style={{ fontFamily: '"Playfair Display", serif' }}>
-              <span className="text-accent">Vasa</span>
-              <span style={{ color: '#7d9fad' }}>thi.</span>
+              <span className="text-accent">Vasathi</span><span style={{ color: '#264653' }}>.</span>
             </span>
           </div>
           <div className="flex items-center gap-4">

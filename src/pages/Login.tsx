@@ -52,8 +52,7 @@ const Login = () => {
 
           <div className="flex flex-col items-center gap-4 mb-4">
             <h1 className="text-5xl font-black tracking-tight" style={{ fontFamily: '"Playfair Display", serif' }}>
-              <span className="text-accent">Vasa</span>
-              <span style={{ color: '#7d9fad' }}>thi.</span>
+              <span className="text-accent">Vasathi</span><span style={{ color: '#264653' }}>.</span>
             </h1>
           </div>
           <p className="text-slate-500 font-medium">Elevating your living experience.</p>

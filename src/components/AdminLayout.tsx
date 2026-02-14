@@ -31,8 +31,7 @@ const AdminLayout = ({ children, breadcrumbs = [], title, subtitle, actions }: A
           <div className="flex items-center gap-6">
             <Link to="/admin" className="group">
               <span className="text-2xl font-black tracking-tight transition-colors" style={{ fontFamily: '"Playfair Display", serif' }}>
-                <span className="text-accent">Vasa</span>
-                <span style={{ color: '#7d9fad' }}>thi.</span>
+                <span className="text-accent">Vasathi</span><span style={{ color: '#264653' }}>.</span>
               </span>
             </Link>
           </div>
