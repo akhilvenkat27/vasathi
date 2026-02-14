@@ -7,10 +7,14 @@ import { fileURLToPath } from 'url';
 import mongoose from 'mongoose';
 
 const __filename = fileURLToPath(import.meta.url);
+import dotenv from 'dotenv';
+dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 const UPLOADS_DIR = path.join(__dirname, '../../public/uploads');
 
 // Ensure uploads directory exists
@@ -23,7 +27,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use('/uploads', express.static(UPLOADS_DIR));
 
 // MongoDB Connection
-const MONGODB_URI = 'mongodb+srv://pms:rjjkFZoxnxIFPJQ3@pms-hyd.t7o5paw.mongodb.net/pms';
+const MONGODB_URI = process.env.MONGODB_URI;
 mongoose.connect(MONGODB_URI, { family: 4 })
     .then(() => console.log('Connected to MongoDB Atlas (pms database)'))
     .catch(err => console.error('MongoDB connection error:', err));
