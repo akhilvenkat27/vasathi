@@ -5,9 +5,8 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import mongoose from 'mongoose';
-
-const __filename = fileURLToPath(import.meta.url);
 import dotenv from 'dotenv';
+
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -15,7 +14,8 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const UPLOADS_DIR = path.join(__dirname, '../../public/uploads');
+const UPLOADS_DIR = path.join(__dirname, '../../public/uploads'); // Dev/Local path
+const DIST_DIR = path.join(__dirname, '../../dist');
 
 // Ensure uploads directory exists
 if (!fs.existsSync(UPLOADS_DIR)) {
@@ -24,6 +24,8 @@ if (!fs.existsSync(UPLOADS_DIR)) {
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
+
+// Serve Uploads
 app.use('/uploads', express.static(UPLOADS_DIR));
 
 // MongoDB Connection
@@ -212,5 +214,16 @@ app.post('/api/upload-multiple', upload.array('images', 10), (req, res) => {
     const imageUrls = req.files.map(file => `/uploads/${file.filename}`);
     res.json({ imageUrls });
 });
+
+// Serve Static Frontend (Production)
+if (fs.existsSync(DIST_DIR)) {
+    app.use(express.static(DIST_DIR));
+    // SPA Fallback: Any request not handled by API or Static files returns index.html
+    app.get('*', (req, res) => {
+        if (!req.path.startsWith('/api')) {
+            res.sendFile(path.join(DIST_DIR, 'index.html'));
+        }
+    });
+}
 
 app.listen(PORT, () => console.log(`Backend server running on http://localhost:${PORT}`));
