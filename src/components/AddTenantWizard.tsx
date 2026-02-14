@@ -21,7 +21,7 @@ const steps = [
 ];
 
 const AddTenantWizard = ({ pgId, onComplete, onCancel }: AddTenantWizardProps) => {
-    const { getFloorsForPG, getRoomsForFloor, getResidentsForRoom, addResident } = useApp();
+    const { getFloorsForPG, getRoomsForFloor, getResidentsForRoom, addResident, uploadImage } = useApp();
     const [currentStep, setCurrentStep] = useState(1);
     const [formData, setFormData] = useState({
         name: '',
@@ -60,16 +60,22 @@ const AddTenantWizard = ({ pgId, onComplete, onCancel }: AddTenantWizardProps) =
         if (currentStep > 1) setCurrentStep(prev => prev - 1);
     };
 
-    const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const [isUploading, setIsUploading] = useState(false);
+
+    const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setFormData(prev => ({ ...prev, profileImage: reader.result as string }));
-            };
-            reader.readAsDataURL(file);
+            setIsUploading(true);
+            try {
+                const url = await uploadImage(e.target.files[0]);
+                setFormData(prev => ({ ...prev, profileImage: url }));
+            } catch {
+                // upload error is handled by context toast
+            } finally {
+                setIsUploading(false);
+            }
         }
     };
+
 
     const handleSubmit = () => {
         const { profileImage, ...rest } = formData;

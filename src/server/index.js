@@ -112,6 +112,11 @@ const separationRequestSchema = new mongoose.Schema({
     initiatedBy: { type: String, enum: ['resident', 'admin'] }
 });
 
+const imageSchema = new mongoose.Schema({
+    data: Buffer,
+    contentType: String,
+});
+
 // Models
 const PG = mongoose.model('PG', pgSchema);
 const Floor = mongoose.model('Floor', floorSchema);
@@ -120,16 +125,10 @@ const Resident = mongoose.model('Resident', residentSchema);
 const Payment = mongoose.model('Payment', paymentSchema);
 const Grievance = mongoose.model('Grievance', grievanceSchema);
 const SeparationRequest = mongoose.model('SeparationRequest', separationRequestSchema);
+const Image = mongoose.model('Image', imageSchema);
 
-// Multer setup
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, UPLOADS_DIR),
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + path.extname(file.originalname));
-    }
-});
-const upload = multer({ storage });
+// Multer setup — memory storage (files saved to MongoDB, not disk)
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 // API Routes
 app.get('/api/db', async (req, res) => {
@@ -204,15 +203,41 @@ registerCRUDRoutes(Payment, 'payments');
 registerCRUDRoutes(Grievance, 'grievances');
 registerCRUDRoutes(SeparationRequest, 'separations');
 
-// Uploads
-app.post('/api/upload', upload.single('image'), (req, res) => {
-    if (!req.file) return res.status(400).json({ error: 'No file' });
-    res.json({ imageUrl: `/uploads/${req.file.filename}` });
+// Serve images from MongoDB
+app.get('/api/images/:id', async (req, res) => {
+    try {
+        const img = await Image.findById(req.params.id);
+        if (!img) return res.status(404).json({ error: 'Image not found' });
+        res.set('Content-Type', img.contentType);
+        res.set('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
+        res.send(img.data);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
-app.post('/api/upload-multiple', upload.array('images', 10), (req, res) => {
-    const imageUrls = req.files.map(file => `/uploads/${file.filename}`);
-    res.json({ imageUrls });
+// Upload single image → save to MongoDB
+app.post('/api/upload', upload.single('image'), async (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'No file' });
+    try {
+        const img = new Image({ data: req.file.buffer, contentType: req.file.mimetype });
+        await img.save();
+        res.json({ imageUrl: `/api/images/${img._id}` });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Upload multiple images → save all to MongoDB
+app.post('/api/upload-multiple', upload.array('images', 10), async (req, res) => {
+    try {
+        const docs = await Promise.all(
+            req.files.map(file => new Image({ data: file.buffer, contentType: file.mimetype }).save())
+        );
+        res.json({ imageUrls: docs.map(d => `/api/images/${d._id}`) });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // Serve Static Frontend (Production)
