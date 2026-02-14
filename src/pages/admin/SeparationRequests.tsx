@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 
 const SeparationRequests = () => {
   const { pgId } = useParams<{ pgId: string }>();
-  const { getPGById, separationRequests, getResidentById, approveSeparation, rejectSeparation } = useApp();
+  const { getPGById, separationRequests, getResidentById, approveSeparation, rejectSeparation, isLoading } = useApp();
 
   const pg = getPGById(pgId || '');
 
@@ -27,7 +27,10 @@ const SeparationRequests = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  if (!pg) return <div className="p-8 text-center">PG not found</div>;
+  if (!pg) {
+    if (isLoading) return <div className="flex items-center justify-center min-h-screen bg-slate-50"><div className="h-12 w-12 border-4 border-slate-100 border-t-accent rounded-full animate-spin" /></div>;
+    return <div className="p-8 text-center">PG not found</div>;
+  }
 
   const pgSeps = separationRequests.filter(s => s.pgId === pg.id);
   const filteredSeps = pgSeps.filter(s => {

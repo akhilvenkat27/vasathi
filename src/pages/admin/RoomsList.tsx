@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { resolveImageUrl } from '@/utils/imageUrl';
 import { Plus, DoorOpen, Trash2, ArrowRight, Snowflake, Fan, Image as ImageIcon, X, Loader2 } from 'lucide-react';
 import ImageSlideshow from '@/components/ImageSlideshow';
 import { Button } from '@/components/ui/button';
@@ -17,7 +18,7 @@ import { Room } from '../types';
 const RoomsList = () => {
   const navigate = useNavigate();
   const { pgId, floorId } = useParams<{ pgId: string; floorId: string }>();
-  const { getPGById, getFloorById, getRoomsForFloor, getResidentsForRoom, addRoom, updateRoom, deleteRoom, uploadMultipleImages } = useApp();
+  const { getPGById, getFloorById, getRoomsForFloor, getResidentsForRoom, addRoom, updateRoom, deleteRoom, uploadMultipleImages, isLoading } = useApp();
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [open, setOpen] = useState(false);
@@ -47,7 +48,10 @@ const RoomsList = () => {
   const floor = getFloorById(floorId || '');
   const roomsList = getRoomsForFloor(floor?.id || '');
 
-  if (!pg || !floor) return <div className="p-8 text-center">Not found</div>;
+  if (!pg || !floor) {
+    if (isLoading) return <div className="flex items-center justify-center min-h-screen bg-slate-50"><div className="h-12 w-12 border-4 border-slate-100 border-t-accent rounded-full animate-spin" /></div>;
+    return <div className="p-8 text-center">Not found</div>;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,7 +123,7 @@ const RoomsList = () => {
                 <div className="flex flex-wrap gap-2 mt-2">
                   {form.photos.map((p, i) => (
                     <div key={i} className="relative w-16 h-16 rounded-md overflow-hidden border border-border">
-                      <img src={p} alt="Room" className="w-full h-full object-cover" />
+                      <img src={resolveImageUrl(p)} alt="Room" className="w-full h-full object-cover" />
                       <button type="button" onClick={() => removePhoto(i)} className="absolute top-0 right-0 bg-black/50 text-white p-0.5 rounded-bl-md hover:bg-black/70">
                         <X className="h-3 w-3" />
                       </button>
@@ -167,7 +171,7 @@ const RoomsList = () => {
                   <div className="flex -space-x-2 mb-4">
                     {getResidentsForRoom(room.id).map(res => (
                       <div key={res.id} className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 overflow-hidden" title={res.name}>
-                        <img src={res.profileImage || `https://i.pravatar.cc/100?u=${res.id}`} alt={res.name} className="w-full h-full object-cover" />
+                        <img src={resolveImageUrl(res.profileImage) || `https://i.pravatar.cc/100?u=${res.id}`} alt={res.name} className="w-full h-full object-cover" />
                       </div>
                     ))}
                     {occupants === 0 && <span className="text-xs text-muted-foreground italic">Vacant</span>}

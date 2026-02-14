@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { resolveImageUrl } from '@/utils/imageUrl';
 import { Plus, Building2, MapPin, Phone, Trash2, ArrowRight, Image as ImageIcon, X, Loader2 } from 'lucide-react';
 import ImageSlideshow from '@/components/ImageSlideshow';
 import { Button } from '@/components/ui/button';
@@ -99,7 +100,7 @@ const PGList = () => {
                 <div className="flex flex-wrap gap-2 mt-2">
                   {form.photos.map((p, i) => (
                     <div key={i} className="relative w-16 h-16 rounded-xl overflow-hidden border border-slate-100 shadow-sm">
-                      <img src={p} alt="PG" className="w-full h-full object-cover" />
+                      <img src={resolveImageUrl(p)} alt="PG" className="w-full h-full object-cover" />
                       <button type="button" onClick={() => removePhoto(i)} className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-bl-xl hover:bg-red-600 transition-colors">
                         <X className="h-3.5 w-3.5" />
                       </button>

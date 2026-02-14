@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { resolveImageUrl } from '@/utils/imageUrl';
 import { User, Mail, Phone, Briefcase, Calendar, CreditCard, Download, Building2, LogOut, AlertTriangle, MessageSquare, ChevronLeft, ChevronRight, Image as ImageIcon, X, MapPin, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -149,7 +150,7 @@ const ResidentDashboard = () => {
             <div className="relative group">
               <div className="w-32 h-32 rounded-[2rem] overflow-hidden bg-slate-50 shadow-inner ring-8 ring-slate-50">
                 <img
-                  src={resident.profileImage || `https://api.dicebear.com/7.x/open-peeps/svg?seed=${resident.name}`}
+                  src={resolveImageUrl(resident.profileImage) || `https://api.dicebear.com/7.x/open-peeps/svg?seed=${resident.name}`}
                   className="w-full h-full object-cover"
                   alt={resident.name}
                 />
@@ -260,7 +261,7 @@ const ResidentDashboard = () => {
                     <div className="flex flex-wrap gap-3 mt-3">
                       {issuePhotos.map((p, i) => (
                         <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden shadow-sm border border-slate-100">
-                          <img src={p} alt="Issue" className="w-full h-full object-cover" />
+                          <img src={resolveImageUrl(p)} alt="Issue" className="w-full h-full object-cover" />
                           <button type="button" onClick={() => removePhoto(i)} className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-bl-xl hover:bg-red-600 transition-colors">
                             <X className="h-4 w-4" />
                           </button>

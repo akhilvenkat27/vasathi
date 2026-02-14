@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { resolveImageUrl } from '@/utils/imageUrl';
 import { User, Mail, Phone, Briefcase, CreditCard, Calendar, Download, Plus, AlertTriangle, ChevronLeft, ChevronRight, Filter, X, ArrowRightLeft, Repeat, Pencil, Camera, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,7 +17,7 @@ import { toast } from 'sonner';
 
 const ResidentDetail = () => {
   const { pgId, residentId } = useParams<{ pgId: string; residentId: string }>();
-  const { getPGById, getResidentById, getPaymentsForResident, getFloorById, getRoomById, addPayment, updateResident, requestSeparation, separationRequests, withdrawSeparation, moveResident, swapResidents, getFloorsForPG, getRoomsForFloor, getResidentsForRoom, getResidentsForPG, uploadImage } = useApp();
+  const { getPGById, getResidentById, getPaymentsForResident, getFloorById, getRoomById, addPayment, updateResident, requestSeparation, separationRequests, withdrawSeparation, moveResident, swapResidents, getFloorsForPG, getRoomsForFloor, getResidentsForRoom, getResidentsForPG, uploadImage, isLoading } = useApp();
   const [payOpen, setPayOpen] = useState(false);
   // Pagination & Filters
   const [page, setPage] = useState(1);
@@ -36,7 +37,10 @@ const ResidentDetail = () => {
   const pg = getPGById(pgId || '');
   const resident = getResidentById(residentId || '');
 
-  if (!pg || !resident) return <div className="p-8 text-center">Not found</div>;
+  if (!pg || !resident) {
+    if (isLoading) return <div className="flex items-center justify-center min-h-screen bg-slate-50"><div className="h-12 w-12 border-4 border-slate-100 border-t-accent rounded-full animate-spin" /></div>;
+    return <div className="p-8 text-center">Not found</div>;
+  }
 
   const payments = getPaymentsForResident(resident.id);
   const floor = getFloorById(resident.floorId);
@@ -204,7 +208,7 @@ const ResidentDetail = () => {
                       {editUploading ? (
                         <Loader2 className="h-6 w-6 text-slate-400 animate-spin" />
                       ) : editForm.profileImage ? (
-                        <img src={editForm.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                        <img src={resolveImageUrl(editForm.profileImage)} alt="Profile" className="w-full h-full object-cover" />
                       ) : (
                         <Camera className="h-6 w-6 text-slate-300 group-hover:text-accent transition-colors" />
                       )}
@@ -417,7 +421,7 @@ const ResidentDetail = () => {
         <div className="flex flex-col sm:flex-row items-start gap-6">
           <div className="w-28 h-28 rounded-2xl overflow-hidden bg-white shadow-md border-4 border-white">
             <img
-              src={resident.profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${resident.name}`}
+              src={resolveImageUrl(resident.profileImage) || `https://api.dicebear.com/7.x/avataaars/svg?seed=${resident.name}`}
               className="w-full h-full object-cover"
               alt={resident.name}
             />

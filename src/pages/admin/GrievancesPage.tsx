@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
+import { resolveImageUrl } from '@/utils/imageUrl';
 import { Eye, MoreVertical, ChevronLeft, ChevronRight, Search, Filter, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,7 +18,7 @@ import { toast } from 'sonner';
 
 const GrievancesPage = () => {
   const { pgId } = useParams<{ pgId: string }>();
-  const { getPGById, grievances, updateGrievanceStatus, bulkUpdateGrievanceStatus } = useApp();
+  const { getPGById, grievances, updateGrievanceStatus, bulkUpdateGrievanceStatus, isLoading } = useApp();
 
   const pg = getPGById(pgId || '');
 
@@ -42,7 +43,10 @@ const GrievancesPage = () => {
     });
   }, [pgGrievances, search, filterStatus]);
 
-  if (!pg) return <div className="p-8 text-center">PG not found</div>;
+  if (!pg) {
+    if (isLoading) return <div className="flex items-center justify-center min-h-screen bg-slate-50"><div className="h-12 w-12 border-4 border-slate-100 border-t-accent rounded-full animate-spin" /></div>;
+    return <div className="p-8 text-center">PG not found</div>;
+  }
 
   const totalPages = Math.ceil(filtered.length / pageSize);
   const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
@@ -194,7 +198,7 @@ const GrievancesPage = () => {
                   <div className="flex flex-wrap gap-2">
                     {viewing.photos.map((p, i) => (
                       <div key={i} className="relative w-24 h-24 rounded-md overflow-hidden border border-border cursor-pointer group hover:border-accent transition-all" onClick={() => setFullImage(p)}>
-                        <img src={p} alt={`Evidence ${i + 1}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                        <img src={resolveImageUrl(p)} alt={`Evidence ${i + 1}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
                         <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                           <Eye className="h-5 w-5 text-white" />
                         </div>
@@ -256,7 +260,7 @@ const GrievancesPage = () => {
         <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 overflow-hidden bg-transparent border-0 shadow-none">
           {fullImage && (
             <div className="relative w-full h-full flex items-center justify-center">
-              <img src={fullImage} alt="Full view" className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl" />
+              <img src={resolveImageUrl(fullImage)} alt="Full view" className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl" />
               <button
                 onClick={() => setFullImage(null)}
                 className="absolute top-4 right-4 h-10 w-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-all border border-white/20"

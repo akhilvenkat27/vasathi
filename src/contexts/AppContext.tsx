@@ -134,7 +134,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await fetch(`${API_URL}/upload`, { method: 'POST', body: formData });
       const data = await response.json();
-      return `http://${window.location.hostname}:3001${data.imageUrl}`;
+      return data.imageUrl; // Store relative path only (e.g. /uploads/xxx.jpg)
     } catch (error) {
       toast.error('Image upload failed');
       throw error;
@@ -147,7 +147,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await fetch(`${API_URL}/upload-multiple`, { method: 'POST', body: formData });
       const data = await response.json();
-      return data.imageUrls.map((url: string) => `http://${window.location.hostname}:3001${url}`);
+      return data.imageUrls; // Store relative paths only
     } catch (error) {
       toast.error('Multiple image upload failed');
       throw error;

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { resolveImageUrl } from '@/utils/imageUrl';
 
 interface ImageSlideshowProps {
     images?: string[];
@@ -50,7 +51,7 @@ const ImageSlideshow = ({ images = [], className = '', aspectRatio = 'video' }: 
             <AnimatePresence mode="wait">
                 <motion.img
                     key={currentIndex}
-                    src={images[currentIndex]}
+                    src={resolveImageUrl(images[currentIndex])}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}

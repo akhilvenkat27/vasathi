@@ -15,7 +15,7 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 
 const DuesReport = () => {
     const { pgId } = useParams<{ pgId: string }>();
-    const { getPGById, getResidentsForPG, payments, floors, rooms, getFloorById, getRoomById } = useApp();
+    const { getPGById, getResidentsForPG, payments, floors, rooms, getFloorById, getRoomById, isLoading } = useApp();
 
     const pg = getPGById(pgId || '');
     const allResidents = getResidentsForPG(pg?.id || '');
@@ -100,7 +100,10 @@ const DuesReport = () => {
         toast.success(`Exported ${dataToExport.length} records`);
     };
 
-    if (!pg) return <div className="p-8 text-center">PG not found</div>;
+    if (!pg) {
+        if (isLoading) return <div className="flex items-center justify-center min-h-screen bg-slate-50"><div className="h-12 w-12 border-4 border-slate-100 border-t-accent rounded-full animate-spin" /></div>;
+        return <div className="p-8 text-center">PG not found</div>;
+    }
 
     return (
         <AdminLayout

@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
+import { resolveImageUrl } from '@/utils/imageUrl';
 import { Plus, Layers, Trash2, ArrowRight, Image as ImageIcon, X, Loader2 } from 'lucide-react';
 import ImageSlideshow from '@/components/ImageSlideshow';
 import { Button } from '@/components/ui/button';
@@ -16,7 +17,7 @@ import { Floor } from '../types';
 const FloorsList = () => {
   const navigate = useNavigate();
   const { pgId } = useParams<{ pgId: string }>();
-  const { getPGById, getFloorsForPG, getRoomsForFloor, addFloor, updateFloor, deleteFloor, uploadMultipleImages } = useApp();
+  const { getPGById, getFloorsForPG, getRoomsForFloor, addFloor, updateFloor, deleteFloor, uploadMultipleImages, isLoading } = useApp();
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [open, setOpen] = useState(false);
@@ -45,7 +46,10 @@ const FloorsList = () => {
   const pg = getPGById(pgId || '');
   const floors = getFloorsForPG(pg?.id || '');
 
-  if (!pg) return <div className="p-8 text-center">PG not found</div>;
+  if (!pg) {
+    if (isLoading) return <div className="flex items-center justify-center min-h-screen bg-slate-50"><div className="h-12 w-12 border-4 border-slate-100 border-t-accent rounded-full animate-spin" /></div>;
+    return <div className="p-8 text-center">PG not found</div>;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,7 +100,7 @@ const FloorsList = () => {
                 <div className="flex flex-wrap gap-2 mt-2">
                   {form.photos.map((p, i) => (
                     <div key={i} className="relative w-16 h-16 rounded-md overflow-hidden border border-border">
-                      <img src={p} alt="Floor" className="w-full h-full object-cover" />
+                      <img src={resolveImageUrl(p)} alt="Floor" className="w-full h-full object-cover" />
                       <button type="button" onClick={() => removePhoto(i)} className="absolute top-0 right-0 bg-black/50 text-white p-0.5 rounded-bl-md hover:bg-black/70">
                         <X className="h-3 w-3" />
                       </button>

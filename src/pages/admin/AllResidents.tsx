@@ -19,7 +19,7 @@ import { toast } from 'sonner';
 const AllResidents = () => {
   const navigate = useNavigate();
   const { pgId } = useParams<{ pgId: string }>();
-  const { getPGById, getResidentsForPG, floors, rooms, addPayment, removeResident, bulkRemoveResidents, moveResident, swapResidents, getResidentsForRoom } = useApp();
+  const { getPGById, getResidentsForPG, floors, rooms, addPayment, removeResident, bulkRemoveResidents, moveResident, swapResidents, getResidentsForRoom, isLoading } = useApp();
 
   const pg = getPGById(pgId || '');
   const allResidents = getResidentsForPG(pg?.id || '');
@@ -68,7 +68,10 @@ const AllResidents = () => {
     });
   }, [allResidents, search, filterFloor, filterRoom, filterStatus, filterGender, pg]);
 
-  if (!pg) return <div className="p-8 text-center">PG not found</div>;
+  if (!pg) {
+    if (isLoading) return <div className="flex items-center justify-center min-h-screen bg-slate-50"><div className="h-12 w-12 border-4 border-slate-100 border-t-accent rounded-full animate-spin" /></div>;
+    return <div className="p-8 text-center">PG not found</div>;
+  }
 
   const totalPages = Math.ceil(filtered.length / pageSize);
   const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { resolveImageUrl } from '@/utils/imageUrl';
 import { Plus, User, Trash2, Eye, Users, Camera, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +16,7 @@ import { toast } from 'sonner';
 const RoomDetail = () => {
   const navigate = useNavigate();
   const { pgId, floorId, roomId } = useParams<{ pgId: string; floorId: string; roomId: string }>();
-  const { getPGById, getFloorById, getRoomById, getResidentsForRoom, addResident, removeResident, uploadImage } = useApp();
+  const { getPGById, getFloorById, getRoomById, getResidentsForRoom, addResident, removeResident, uploadImage, isLoading } = useApp();
   const [open, setOpen] = useState(false);
   const [profileImage, setProfileImage] = useState('');
   const [isUploading, setIsUploading] = useState(false);
@@ -32,7 +33,10 @@ const RoomDetail = () => {
   const room = getRoomById(roomId || '');
   const residents = getResidentsForRoom(room?.id || '');
 
-  if (!pg || !floor || !room) return <div className="p-8 text-center">Not found</div>;
+  if (!pg || !floor || !room) {
+    if (isLoading) return <div className="flex items-center justify-center min-h-screen bg-slate-50"><div className="h-12 w-12 border-4 border-slate-100 border-t-accent rounded-full animate-spin" /></div>;
+    return <div className="p-8 text-center">Not found</div>;
+  }
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -95,7 +99,7 @@ const RoomDetail = () => {
                     {isUploading ? (
                       <Loader2 className="h-6 w-6 text-slate-400 animate-spin" />
                     ) : profileImage ? (
-                      <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
+                      <img src={resolveImageUrl(profileImage)} alt="Profile" className="w-full h-full object-cover" />
                     ) : (
                       <Camera className="h-6 w-6 text-slate-300 group-hover:text-accent transition-colors" />
                     )}
@@ -157,7 +161,7 @@ const RoomDetail = () => {
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 rounded-full overflow-hidden bg-accent/10 flex items-center justify-center flex-shrink-0">
                   {r.profileImage ? (
-                    <img src={r.profileImage} alt={r.name} className="w-full h-full object-cover" />
+                    <img src={resolveImageUrl(r.profileImage)} alt={r.name} className="w-full h-full object-cover" />
                   ) : (
                     <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${r.name}`} alt={r.name} className="w-full h-full object-cover" />
                   )}
