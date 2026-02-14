@@ -29,11 +29,11 @@ const AdminLayout = ({ children, breadcrumbs = [], title, subtitle, actions }: A
       <nav className="sticky top-0 z-50 bg-white border-b border-slate-200/60 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
           <div className="flex items-center gap-6">
-            <Link to="/admin" className="flex items-center gap-2.5 group">
-              <div className="w-9 h-9 bg-accent rounded-lg flex items-center justify-center shadow-lg shadow-accent/20 transition-transform group-hover:scale-105">
-                <Building2 className="h-5 w-5 text-accent-foreground" />
-              </div>
-              <span className="text-xl font-black font-display tracking-tight text-foreground">Vasathi</span>
+            <Link to="/admin" className="group">
+              <span className="text-2xl font-black tracking-tight transition-colors" style={{ fontFamily: '"Playfair Display", serif' }}>
+                <span className="text-accent">Vasa</span>
+                <span style={{ color: '#7d9fad' }}>thi.</span>
+              </span>
             </Link>
           </div>
 

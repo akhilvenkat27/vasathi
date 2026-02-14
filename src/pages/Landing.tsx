@@ -12,11 +12,11 @@ const Landing = () => {
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-border/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-20">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center shadow-lg shadow-accent/20">
-              <Building2 className="h-6 w-6 text-accent-foreground" />
-            </div>
-            <span className="text-2xl font-black font-display tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">Vasathi</span>
+          <div>
+            <span className="text-3xl font-black tracking-tight" style={{ fontFamily: '"Playfair Display", serif' }}>
+              <span className="text-accent">Vasa</span>
+              <span style={{ color: '#7d9fad' }}>thi.</span>
+            </span>
           </div>
           <div className="flex items-center gap-4">
             <Button variant="ghost" className="font-medium hidden sm:flex" onClick={() => navigate('/login?type=resident')}>
@@ -135,8 +135,7 @@ const Landing = () => {
           <div className="grid md:grid-cols-4 gap-12 mb-20">
             <div className="col-span-2">
               <div className="flex items-center gap-2 mb-8">
-                <Building2 className="h-8 w-8 text-accent" />
-                <span className="text-3xl font-black font-display tracking-tight">Vasathi</span>
+                <span className="text-3xl font-black tracking-tight text-white" style={{ fontFamily: '"Playfair Display", serif' }}>Vasathi.</span>
               </div>
               <p className="max-w-sm text-slate-400 font-medium leading-relaxed">
                 The premier platform for PG owners. We simplify property management so you can focus on providing great experiences.

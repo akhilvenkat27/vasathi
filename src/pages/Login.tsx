@@ -51,10 +51,10 @@ const Login = () => {
           </button>
 
           <div className="flex flex-col items-center gap-4 mb-4">
-            <div className="w-16 h-16 bg-accent rounded-[1.5rem] flex items-center justify-center shadow-xl shadow-accent/20">
-              <Building2 className="h-8 w-8 text-accent-foreground" />
-            </div>
-            <h1 className="text-4xl font-black font-display tracking-tight text-foreground">Vasathi</h1>
+            <h1 className="text-5xl font-black tracking-tight" style={{ fontFamily: '"Playfair Display", serif' }}>
+              <span className="text-accent">Vasa</span>
+              <span style={{ color: '#7d9fad' }}>thi.</span>
+            </h1>
           </div>
           <p className="text-slate-500 font-medium">Elevating your living experience.</p>
         </div>
